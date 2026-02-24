@@ -1,0 +1,20 @@
+# Archivos de entorno y git
+.git
+.gitignore
+.env
+venv
+env
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Base de datos local
+database.db
+
+# Datos y caché
+.pytest_cache
+.coverage
+htmlcov
+dist
+build

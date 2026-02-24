@@ -1,0 +1,10 @@
+fastapi>=0.110.0
+uvicorn>=0.27.1
+sqlmodel>=0.0.16
+pydantic>=2.6.1
+python-dotenv>=1.0.1
+# lancedb>=0.5.4  <-- Comentado temporalmente por incompatibilidad con Python 3.14
+# pyswisseph>=2.10.3.2 <-- Comentado temporalmente por incompatibilidad con Python 3.14
+langchain>=0.1.9
+openai>=1.12.0
+httpx>=0.27.0

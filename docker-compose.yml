@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cosmo-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Montamos el código fuente para desarrollo en vivo (Live Reload)
+      - ./backend:/app
+      # Opcional: Persistir la base de datos si usamos SQLite
+      - sqlite_data:/app/data
+    environment:
+      # Aquí definiremos variables de entorno cuando las necesitemos
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=cosmotarot
+    restart: always
+
+volumes:
+  sqlite_data:
