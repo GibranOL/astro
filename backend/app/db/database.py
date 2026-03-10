@@ -1,16 +1,27 @@
 from sqlmodel import create_engine, SQLModel, Session
-from sqlalchemy.orm import sessionmaker
 import os
+from dotenv import load_dotenv
 
-# Definimos el nombre del archivo de la base de datos
-sqlite_file_name = "database.db"
-# La URL de conexión. Para SQLite es simplemente el prefijo + el nombre del archivo.
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+# Cargar variables de entorno (por defecto busca en el directorio actual o padres)
+load_dotenv()
 
-# El "engine" es el objeto que realmente se comunica con el archivo .db
-# 'check_same_thread=False' es necesario para que FastAPI (que es asíncrono) 
-# pueda usar SQLite (que es síncrono por defecto) sin problemas.
-engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
+# Obtener la URL de la base de datos de las variables de entorno
+# Hacemos fallback a SQLite si no existe, para evitar romper tests inmediatos 
+# si alguien olvida configurar el .env
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///database.db")
+
+# Configurar el engine. Para Postgres en Supabase, la configuración recomendada a veces
+# requiere pool_pre_ping=True para manejar conexiones caídas.
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
+engine = create_engine(
+    DATABASE_URL, 
+    connect_args=connect_args, 
+    echo=False, # Pon en True para ver los logs SQL en la consola
+    pool_pre_ping=True if not DATABASE_URL.startswith("sqlite") else False
+)
 
 def create_db_and_tables():
     """

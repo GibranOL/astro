@@ -3,18 +3,24 @@ from typing import Dict
 from app.db.database import create_db_and_tables
 from app.api import tarot
 
+from contextlib import asynccontextmanager
+
+# El evento 'lifespan' reemplaza a los eventos de startup y shutdown.
+# Aquí es el lugar perfecto para crear las tablas al iniciar.
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Lógica de Startup
+    create_db_and_tables()
+    yield
+    # Lógica de Shutdown (si la hubiera, iría aquí)
+
 # Instanciamos la aplicación FastAPI
 app = FastAPI(
     title="CosmoTarot API",
     description="Backend para la App de Cosmología y Tarot - Platzi Showcase",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan
 )
-
-# El evento 'startup' se ejecuta una sola vez cuando el servidor inicia.
-# Aquí es el lugar perfecto para crear las tablas si no existen.
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
 
 # Incluimos los routers de nuestra aplicación
 app.include_router(tarot.router)

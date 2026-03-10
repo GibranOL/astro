@@ -14,11 +14,27 @@ services:
       # Opcional: Persistir la base de datos si usamos SQLite
       - sqlite_data:/app/data
     environment:
-      # Aquí definiremos variables de entorno cuando las necesitemos
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=cosmotarot
+      # Las variables de entorno para el backend
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-cosmotarot}
+      - POSTGRES_USER=${POSTGRES_USER:-user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-cosmotarot}
+    depends_on:
+      - db
     restart: always
 
+  db:
+    image: postgres:15
+    container_name: cosmo-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-cosmotarot}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
 volumes:
-  sqlite_data:
+  postgres_data:
