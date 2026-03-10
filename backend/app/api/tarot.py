@@ -5,9 +5,11 @@ import random
 # Importamos nuestros servicios y modelos
 from app.db.database import get_session
 from app.models.journal import TarotJournal
+from app.models.user import User
 from app.schemas.tarot import TarotDrawRequest
 from app.services.astrology import astrology_service
 from app.services.ai import ai_service
+from app.services.auth import get_current_user
 
 # Creamos un router específico para las rutas de Tarot
 router = APIRouter(
@@ -24,7 +26,11 @@ MAJOR_ARCANA = [
 ]
 
 @router.post("/draw", response_model=TarotJournal)
-def draw_card(request: TarotDrawRequest, session: Session = Depends(get_session)):
+def draw_card(
+    request: TarotDrawRequest, 
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
     """
     Realiza una tirada de cartas para el usuario.
     Combina la astrología (signo solar) con la lectura del Tarot.
@@ -55,7 +61,7 @@ def draw_card(request: TarotDrawRequest, session: Session = Depends(get_session)
 
     # 4. Guardar en el Diario de Tarot (Base de Datos)
     journal_entry = TarotJournal(
-        user_id=request.user_name, # Usamos el nombre como ID temporalmente
+        user_id=str(current_user.id), # UUID to string if TarotJournal model expects string/int
         card_drawn=card_name,
         is_reversed=is_reversed,
         interpretation=interpretation_text,

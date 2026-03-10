@@ -23,6 +23,8 @@ app = FastAPI(
 )
 
 # Incluimos los routers de nuestra aplicación
+from app.api import tarot, auth
+app.include_router(auth.router)
 app.include_router(tarot.router)
 
 @app.get("/api/status", tags=["Health Check"])
