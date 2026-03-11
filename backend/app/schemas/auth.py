@@ -62,3 +62,6 @@ class UserProfileUpdateRequest(BaseModel):
     birth_country: Optional[str] = None
     preferred_language: Optional[str] = None
     timezone: Optional[str] = None
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

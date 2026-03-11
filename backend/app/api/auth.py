@@ -9,13 +9,13 @@ from app.schemas.auth import (
     UserLoginRequest,
     UserProfileResponse,
     UserProfileUpdateRequest,
+    RefreshTokenRequest,
 )
 from app.services.auth import supabase_client, get_current_user
 
-# Usaremos slowapi para el rate limiter más adelante (requrido en main.py)
-# from slowapi import Limiter
-# from slowapi.util import get_remote_address
-# limiter = Limiter(key_func=get_remote_address)
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -65,8 +65,8 @@ def register_user(payload: UserRegisterRequest, session: Session = Depends(get_s
     return {"message": "User successfully registered.", "user_id": new_user.id}
 
 @router.post("/login")
-# @limiter.limit("5/15minutes") # TODO: attach this to request when limiter is globally injected
-def login_user(payload: UserLoginRequest):
+@limiter.limit("5/15minute")
+def login_user(request: Request, payload: UserLoginRequest):
     """
     Inicia sesión y devuelve el token JWT de Supabase.
     Limitado a 5 intentos cada 15 min.
@@ -132,3 +132,26 @@ def update_profile(
     session.refresh(current_user)
     
     return current_user
+
+@router.post("/refresh")
+def refresh_token(payload: RefreshTokenRequest):
+    """
+    Refresca el token JWT usando el refresh token de Supabase.
+    """
+    if not supabase_client:
+        raise HTTPException(500, "Supabase config missing.")
+
+    try:
+        res = supabase_client.auth.refresh_session(payload.refresh_token)
+    except Exception as e:
+        raise HTTPException(401, "Invalid or expired refresh token")
+
+    if not res.session:
+        raise HTTPException(401, "Could not refresh session")
+
+    return {
+        "access_token": res.session.access_token,
+        "token_type": "bearer",
+        "refresh_token": res.session.refresh_token,
+        "expires_in": res.session.expires_in
+    }

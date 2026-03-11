@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from typing import Dict
 from app.db.database import create_db_and_tables
-from app.api import tarot
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
+from app.api.auth import limiter
+
 
 from contextlib import asynccontextmanager
 
@@ -21,6 +24,9 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Incluimos los routers de nuestra aplicación
 from app.api import tarot, auth
